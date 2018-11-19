@@ -1498,6 +1498,10 @@ function dind::ip6tables-on-hostnet {
 }
 
 function dind::wait-for-ready {
+  if ${DONT_WAIT_FOR_READY}; then
+    echo "Not waiting for ready due to DONT_WAIT_FOR_READY flag"
+    return
+  fi
   local app="kube-proxy"
   if [[ ${CNI_PLUGIN} = "kube-router" ]]; then
     app=kube-router
@@ -1819,6 +1823,9 @@ function dind::up {
       rm "${kube_router_config}"
       dind::retry "${kubectl}" --context "$ctx" -n kube-system delete ds kube-proxy
       docker run --privileged --net=host k8s.gcr.io/kube-proxy-amd64:v1.10.2 kube-proxy --cleanup
+      ;;
+    custom)
+      echo "Custom CNI plugin requested - you must install your own CNI plugin"
       ;;
     *)
       echo "Unsupported CNI plugin '${CNI_PLUGIN}'" >&2
